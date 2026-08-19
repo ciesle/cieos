@@ -1,1 +1,4 @@
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.00s
+error: failed to parse manifest at `/home/ciesle/dev/cieos/cieos/Cargo.toml`
+
+Caused by:
+  can't find library `cieos`, rename file to `src/lib.rs` or specify lib.path
