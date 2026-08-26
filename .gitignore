@@ -1,0 +1,1 @@
+CC=riscv64-elf-gcc
