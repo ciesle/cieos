@@ -11,7 +11,7 @@ OUT_DIR = build
 ELF = $(OUT_DIR)/main.elf
 LINKER_SCRIPT = $(SRC_DIR)/linker.ld
 
-ASFLAGS = -march=rv64gc -mabi=lp64d
+ASFLAGS = -march=rv64gc -mabi=lp64d -mcmodel=medany -ffreestanding
 LDFLAGS = -T $(LINKER_SCRIPT)
 
 RUST_SRC = $(wildcard $(SRC_DIR)/*.rs)
@@ -43,7 +43,18 @@ run: build
 		-bios none \
 		-kernel $(ELF)
 
+gdb: 
+	$(QEMU) \
+		-machine virt \
+		-nographic \
+		-machine virt \
+		-m 128M \
+		-kernel $(ELF) \
+		-bios none \
+		-S \
+		-gdb tcp::10000
+
 clean:
 	rm -rf $(OUT_DIR)
 
-.PHONY: build run clean
+.PHONY: build run gdb clean
