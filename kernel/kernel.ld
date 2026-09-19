@@ -1,5 +1,5 @@
 OUTPUT_ARCH("riscv")
-ENTRY(_start)
+ENTRY(_entry)
 
 MEMORY {
   ram (wxa!ri) : ORIGIN = 0x80000000, LENGTH = 128M
@@ -8,7 +8,7 @@ MEMORY {
 SECTIONS {
   .text : {
     PROVIDE(_text_start = .);
-    *(.reset)
+    KEEP(build/entry.o(.text))
     *(.text .text.*)
     PROVIDE(_text_end = .);
   } >ram AT>ram
@@ -42,6 +42,11 @@ SECTIONS {
     *(.bss .bss.*)
     . = ALIGN(16);
     PROVIDE(_bss_end = .);
+  } >ram AT>ram
+
+  .stack0 : {
+    . = ALIGN(16);
+    KEEP(*(.stack0));
   } >ram AT>ram
 
   .stack : {

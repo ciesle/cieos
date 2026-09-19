@@ -3,36 +3,38 @@ AS = riscv64-unknown-elf-as
 LD = riscv64-unknown-elf-ld
 QEMU = qemu-system-riscv64
 
+OUT_DIR = build
 TARGET = riscv64gc-unknown-none-elf
 
-SRC_DIR = src
-OUT_DIR = build
-
-ELF = $(OUT_DIR)/main.elf
-LINKER_SCRIPT = $(SRC_DIR)/linker.ld
-
-ASFLAGS = -march=rv64gc -mabi=lp64d -mcmodel=medany -ffreestanding
+ASFLAGS = -march=rv64gc -mabi=lp64d
 LDFLAGS = -T $(LINKER_SCRIPT)
 
-RUST_SRC = $(wildcard $(SRC_DIR)/*.rs)
-ASM_SRC = $(wildcard $(SRC_DIR)/*.s)
-ASM_OBJ = $(patsubst $(SRC_DIR)/%.s,$(OUT_DIR)/%.o,$(ASM_SRC))
+# KERNEL Settings
+KERNEL_DIR = kernel
+KERNEL_ELF = $(OUT_DIR)/kernel.elf
+KERNEL_LINKER = $(KERNEL_DIR)/kernel.ld
+
+KERNEL_RUST_SRC = $(wildcard $(KERNEL_DIR)/*.rs)
+KERNEL_ASM_SRC = $(wildcard $(KERNEL_DIR)/*.s)
+KERNEL_ASM_OBJ = $(patsubst $(KERNEL_DIR)/%.s,$(OUT_DIR)/%.o,$(KERNEL_ASM_SRC))
 
 RUSTFLAGS = \
 	--target $(TARGET) \
 	-C panic=abort \
-	-C linker=$(LD) \
-	-C link-arg=-T$(LINKER_SCRIPT)
+    -C debuginfo=2 \
+	-C linker=$(LD)
 
-build: $(ELF)
+build: $(KERNEL_ELF)
 
-$(ELF): $(RUST_SRC) $(ASM_OBJ) $(LINKER_SCRIPT)
+$(KERNEL_ELF): $(KERNEL_RUST_SRC) $(KERNEL_ASM_OBJ) $(KERNEL_LINKER)
 	mkdir -p $(OUT_DIR)
 	$(RUSTC) $(RUSTFLAGS) \
-		$(foreach obj,$(ASM_OBJ),-C link-arg=$(obj)) \
-		$(SRC_DIR)/main.rs -o $@
+		-A unused \
+		-C link-arg=-T$(KERNEL_LINKER) \
+		$(foreach obj,$(KERNEL_ASM_OBJ),-C link-arg=$(obj)) \
+		$(KERNEL_DIR)/main.rs -o $@
 
-$(OUT_DIR)/%.o: $(SRC_DIR)/%.s
+$(OUT_DIR)/%.o: $(KERNEL_SRC)/%.s
 	mkdir -p $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
@@ -41,7 +43,7 @@ run: build
 		-machine virt \
 		-nographic \
 		-bios none \
-		-kernel $(ELF)
+		-kernel $(KERNEL_ELF)
 
 gdb: 
 	$(QEMU) \
@@ -49,7 +51,7 @@ gdb:
 		-nographic \
 		-machine virt \
 		-m 128M \
-		-kernel $(ELF) \
+		-kernel $(KERNEL_ELF) \
 		-bios none \
 		-S \
 		-gdb tcp::10000
