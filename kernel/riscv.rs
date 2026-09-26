@@ -46,7 +46,7 @@ pub(crate) fn w_mepc(x: usize) {
     }
 }
 
-// sstatusの読み書き
+// sstatus(supervisor status)の読み書き
 pub(crate) const SSTATUS_SPP: usize = 1 << 8; // 直前の特権モード
 pub(crate) const SSTATUS_SIE: usize = 1 << 1; // Sモードで割り込みを受け付けるか
 pub(crate) const SSTATUS_SPIE: usize = 1 << 5; // トラップ直前のSIE

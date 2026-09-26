@@ -30,7 +30,7 @@ fn start() {
     // ハードウェアのダーティページの書き込みを許可
     w_menvcfg(r_menvcfg() | MENVCFG_ADUE);
 
-    timerinit();
+    timer_init();
 
     let id: usize = r_mhartid();
     w_tp(id);
@@ -40,7 +40,7 @@ fn start() {
     }
 }
 
-fn timerinit() {
+fn timer_init() {
     // 特権モードにタイマー比較を許可
     w_menvcfg(r_menvcfg() | MENVCFG_STCE);
 

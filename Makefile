@@ -34,7 +34,7 @@ $(KERNEL_ELF): $(KERNEL_RUST_SRC) $(KERNEL_ASM_OBJ) $(KERNEL_LINKER)
 		$(foreach obj,$(KERNEL_ASM_OBJ),-C link-arg=$(obj)) \
 		$(KERNEL_DIR)/main.rs -o $@
 
-$(OUT_DIR)/%.o: $(KERNEL_SRC)/%.s
+$(OUT_DIR)/%.o: $(KERNEL_DIR)/%.s
 	mkdir -p $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 
