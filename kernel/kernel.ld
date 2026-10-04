@@ -6,42 +6,38 @@ MEMORY {
 }
 
 SECTIONS {
+  . = 0x80000000; // 0x80_000_000
+
   .text : {
-    PROVIDE(_text_start = .);
-    KEEP(build/entry.o(.text))
+    build/entry.o(.text)
     *(.text .text.*)
-    PROVIDE(_text_end = .);
+    . = ALIGN(0x1000);
+    _trampoline = .;
+    *(trampsec)
+    . = ALIGN(0x1000);
+    ASSERT(. - _trampoline == 0x1000, "error: trampoline larger than one page");
+    PROVIDE(etext = .);
   } >ram AT>ram
 
   .rodata : {
-    PROVIDE(_rodata_start = .);
+    . = ALIGN(16);
+    *(.srodata .srodata.*)
+    . = ALIGN(16);
     *(.rodata .rodata.*)
-    *(.note.*)
-    PROVIDE(_rodata_end = .);
   } >ram AT>ram
 
   .data : {
-    . = ALIGN(4096);
-    PROVIDE(_data_start = .);
+    . = ALIGN(16);
+    *(.sdata .sdata.*);
+    . = ALIGN(16);
     *(.data .data.*);
   } >ram AT>ram
-
-  .sdata : {
-    PROVIDE(__global_pointer$ = . + 0x800);
-    *(.sdata .sdata.*)
-    PROVIDE(_data_end = .);
-  } >ram AT>ram
-
+  
   .sbss : {
     . = ALIGN(16);
-    PROVIDE(_bss_start = .);
     *(.sbss .sbss.*)
-  } >ram AT>ram
-
-  .bss : {
-    *(.bss .bss.*)
     . = ALIGN(16);
-    PROVIDE(_bss_end = .);
+    *(.bss .bss.*)
   } >ram AT>ram
 
   .stack0 : {
@@ -49,10 +45,5 @@ SECTIONS {
     KEEP(*(.stack0));
   } >ram AT>ram
 
-  .stack : {
-    . = ALIGN(16);
-    PROVIDE(_stack_start = .);
-    . = . + 4096;
-    PROVIDE(_stack_end = .);
-  } >ram AT>ram
+  PROVIDE(end = .);
 }

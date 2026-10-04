@@ -1,6 +1,7 @@
+use crate::vm::*;
 use core::arch::asm;
 
-pub(crate) fn r_mhartid() -> usize {
+pub fn r_mhartid() -> usize {
     let x: usize;
     unsafe {
         asm!(
@@ -12,12 +13,12 @@ pub(crate) fn r_mhartid() -> usize {
 }
 
 // mstatusの読み書き
-pub(crate) const MSTATUS_MPP_MASK: usize = 3 << 11;
-pub(crate) const MSTATUS_MPP_M: usize = 3 << 11;
-pub(crate) const MSTATUS_MPP_S: usize = 1 << 11;
-pub(crate) const MSTATUS_MPP_U: usize = 0 << 11;
+pub const MSTATUS_MPP_MASK: usize = 3 << 11;
+pub const MSTATUS_MPP_M: usize = 3 << 11;
+pub const MSTATUS_MPP_S: usize = 1 << 11;
+pub const MSTATUS_MPP_U: usize = 0 << 11;
 
-pub(crate) fn r_mstatus() -> usize {
+pub fn r_mstatus() -> usize {
     let x: usize;
     unsafe {
         asm!(
@@ -28,7 +29,7 @@ pub(crate) fn r_mstatus() -> usize {
     x
 }
 
-pub(crate) fn w_mstatus(x: usize) {
+pub fn w_mstatus(x: usize) {
     unsafe {
         asm!(
             "csrw mstatus, {}",
@@ -37,7 +38,7 @@ pub(crate) fn w_mstatus(x: usize) {
     }
 }
 
-pub(crate) fn w_mepc(x: usize) {
+pub fn w_mepc(x: usize) {
     unsafe {
         asm!(
             "csrw mepc, {}",
@@ -47,11 +48,11 @@ pub(crate) fn w_mepc(x: usize) {
 }
 
 // sstatus(supervisor status)の読み書き
-pub(crate) const SSTATUS_SPP: usize = 1 << 8; // 直前の特権モード
-pub(crate) const SSTATUS_SIE: usize = 1 << 1; // Sモードで割り込みを受け付けるか
-pub(crate) const SSTATUS_SPIE: usize = 1 << 5; // トラップ直前のSIE
+pub const SSTATUS_SPP: usize = 1 << 8; // 直前の特権モード
+pub const SSTATUS_SIE: usize = 1 << 1; // Sモードで割り込みを受け付けるか
+pub const SSTATUS_SPIE: usize = 1 << 5; // トラップ直前のSIE
 
-pub(crate) fn r_sstatus() -> usize {
+pub fn r_sstatus() -> usize {
     let x: usize;
     unsafe {
         asm!(
@@ -62,7 +63,7 @@ pub(crate) fn r_sstatus() -> usize {
     x
 }
 
-pub(crate) fn w_sstatus(x: usize) {
+pub fn w_sstatus(x: usize) {
     unsafe {
         asm!(
             "csrw sstatus, {}",
@@ -71,7 +72,7 @@ pub(crate) fn w_sstatus(x: usize) {
     }
 }
 
-pub(crate) fn s_sstatus(x: usize) {
+pub fn s_sstatus(x: usize) {
     unsafe {
         asm!(
             "csrs sstatus, {}",
@@ -80,7 +81,7 @@ pub(crate) fn s_sstatus(x: usize) {
     }
 }
 
-pub(crate) fn c_sstatus(x: usize) {
+pub fn c_sstatus(x: usize) {
     unsafe {
         asm!(
             "csrc sstatus, {}",
@@ -89,7 +90,7 @@ pub(crate) fn c_sstatus(x: usize) {
     }
 }
 
-pub(crate) fn rc_sstatus(x: usize) -> usize {
+pub fn rc_sstatus(x: usize) -> usize {
     let old: usize;
     unsafe {
         asm!(
@@ -102,7 +103,7 @@ pub(crate) fn rc_sstatus(x: usize) -> usize {
 }
 
 // 特権モードでの割り込みがpendingか
-pub(crate) fn r_sip() -> usize {
+pub fn r_sip() -> usize {
     let x: usize;
     unsafe {
         asm!(
@@ -113,7 +114,7 @@ pub(crate) fn r_sip() -> usize {
     x
 }
 
-pub(crate) fn w_sip(x: usize) {
+pub fn w_sip(x: usize) {
     unsafe {
         asm!(
             "csrw sip, {}",
@@ -123,10 +124,10 @@ pub(crate) fn w_sip(x: usize) {
 }
 
 // 特権モードで割り込みを許可するか
-pub(crate) const SIE_SEIE: usize = 1 << 9; // external
-pub(crate) const SIE_STIE: usize = 1 << 5; // timer
+pub const SIE_SEIE: usize = 1 << 9; // external
+pub const SIE_STIE: usize = 1 << 5; // timer
 
-pub(crate) fn r_sie() -> usize {
+pub fn r_sie() -> usize {
     let x: usize;
     unsafe {
         asm!(
@@ -137,7 +138,7 @@ pub(crate) fn r_sie() -> usize {
     x
 }
 
-pub(crate) fn w_sie(x: usize) {
+pub fn w_sie(x: usize) {
     unsafe {
         asm!(
             "csrw sie, {}",
@@ -147,9 +148,9 @@ pub(crate) fn w_sie(x: usize) {
 }
 
 // マシンモードで割り込みを許可するか
-pub(crate) const MIE_STIE: usize = 1 << 5;
+pub const MIE_STIE: usize = 1 << 5;
 
-pub(crate) fn r_mie() -> usize {
+pub fn r_mie() -> usize {
     let x: usize;
     unsafe {
         asm!(
@@ -160,7 +161,7 @@ pub(crate) fn r_mie() -> usize {
     x
 }
 
-pub(crate) fn w_mie(x: usize) {
+pub fn w_mie(x: usize) {
     unsafe {
         asm!(
             "csrw mie, {}",
@@ -170,7 +171,7 @@ pub(crate) fn w_mie(x: usize) {
 }
 
 // トラップ直前の実行アドレス
-pub(crate) fn r_sepc() -> usize {
+pub fn r_sepc() -> usize {
     let x: usize;
     unsafe {
         asm!(
@@ -180,7 +181,7 @@ pub(crate) fn r_sepc() -> usize {
     }
     x
 }
-pub(crate) fn w_sepc(x: usize) {
+pub fn w_sepc(x: usize) {
     unsafe {
         asm!(
             "csrw sepc, {}",
@@ -190,7 +191,7 @@ pub(crate) fn w_sepc(x: usize) {
 }
 
 // 例外発生時のマシンモードからの移譲
-pub(crate) fn r_medeleg() -> usize {
+pub fn r_medeleg() -> usize {
     let x: usize;
     unsafe {
         asm!(
@@ -200,7 +201,7 @@ pub(crate) fn r_medeleg() -> usize {
     }
     x
 }
-pub(crate) fn w_medeleg(x: usize) {
+pub fn w_medeleg(x: usize) {
     unsafe {
         asm!(
             "csrw medeleg, {}",
@@ -210,7 +211,7 @@ pub(crate) fn w_medeleg(x: usize) {
 }
 
 // 割り込み発生時のマシンモードからの移譲
-pub(crate) fn r_mideleg() -> usize {
+pub fn r_mideleg() -> usize {
     let x: usize;
     unsafe {
         asm!(
@@ -220,7 +221,7 @@ pub(crate) fn r_mideleg() -> usize {
     }
     x
 }
-pub(crate) fn w_mideleg(x: usize) {
+pub fn w_mideleg(x: usize) {
     unsafe {
         asm!(
             "csrw mideleg, {}",
@@ -231,7 +232,7 @@ pub(crate) fn w_mideleg(x: usize) {
 
 // 割り込みベクトルのベースアドレス
 // 下位２ビットがモードで、ベクターモードのときは base + 4 * cause のアドレスにジャンプする
-pub(crate) fn r_stvec() -> usize {
+pub fn r_stvec() -> usize {
     let x: usize;
     unsafe {
         asm!(
@@ -241,7 +242,7 @@ pub(crate) fn r_stvec() -> usize {
     }
     x
 }
-pub(crate) fn w_stvec(x: usize) {
+pub fn w_stvec(x: usize) {
     unsafe {
         asm!(
             "csrw stvec, {}",
@@ -251,7 +252,7 @@ pub(crate) fn w_stvec(x: usize) {
 }
 
 // 特権モード向けのタイマー設定（時刻がこの値以上で割り込みが入る）
-pub(crate) fn r_stimecmp() -> usize {
+pub fn r_stimecmp() -> usize {
     let x: usize;
     unsafe {
         asm!(
@@ -261,7 +262,7 @@ pub(crate) fn r_stimecmp() -> usize {
     }
     x
 }
-pub(crate) fn w_stimecmp(x: usize) {
+pub fn w_stimecmp(x: usize) {
     unsafe {
         asm!(
             "csrw 0x14d, {}",
@@ -271,9 +272,9 @@ pub(crate) fn w_stimecmp(x: usize) {
 }
 
 // マシンモードから、下位のモードの実行環境を指定する
-pub(crate) const MENVCFG_STCE: usize = 1 << 63; // stimecmpの有効無効
-pub(crate) const MENVCFG_ADUE: usize = 1 << 61; // dirty bitのハードウェア書き込みの有効無効
-pub(crate) fn r_menvcfg() -> usize {
+pub const MENVCFG_STCE: usize = 1 << 63; // stimecmpの有効無効
+pub const MENVCFG_ADUE: usize = 1 << 61; // dirty bitのハードウェア書き込みの有効無効
+pub fn r_menvcfg() -> usize {
     let x: usize;
     unsafe {
         asm!(
@@ -283,7 +284,7 @@ pub(crate) fn r_menvcfg() -> usize {
     }
     x
 }
-pub(crate) fn w_menvcfg(x: usize) {
+pub fn w_menvcfg(x: usize) {
     unsafe {
         asm!(
             "csrw 0x30a, {}",
@@ -294,7 +295,7 @@ pub(crate) fn w_menvcfg(x: usize) {
 
 // 物理メモリ保護
 // 物理メモリについてどう保護するか
-pub(crate) fn w_pmpcfg0(x: usize) {
+pub fn w_pmpcfg0(x: usize) {
     unsafe {
         asm!(
             "csrw pmpcfg0, {}",
@@ -303,7 +304,7 @@ pub(crate) fn w_pmpcfg0(x: usize) {
     }
 }
 // 保護対象となる物理アドレス範囲を指定する
-pub(crate) fn w_pmpaddr0(x: usize) {
+pub fn w_pmpaddr0(x: usize) {
     unsafe {
         asm!(
             "csrw pmpaddr0, {}",
@@ -313,15 +314,13 @@ pub(crate) fn w_pmpaddr0(x: usize) {
 }
 
 const SATP_SV39: usize = 8 << 60;
-macro_rules! MAKE_SATP {
-    ($pagetable: expr) => {
-        SATP_SV39 | ($pagetable >> 12)
-    };
+pub fn make_satp(pagetable: &PageTable) -> usize {
+    SATP_SV39 | (pagetable.root as usize >> 12)
 }
 
 // supervisor address translation and protection
 // (仮想記憶方式)(アドレス空間の識別子 for TLB)(ルートページテーブルのページ番号)
-pub(crate) fn w_satp(x: usize) {
+pub fn w_satp(x: usize) {
     unsafe {
         asm!(
             "csrw satp, {}",
@@ -329,7 +328,7 @@ pub(crate) fn w_satp(x: usize) {
         );
     }
 }
-pub(crate) fn r_satp() -> usize {
+pub fn r_satp() -> usize {
     let x: usize;
     unsafe {
         asm!(
@@ -341,7 +340,7 @@ pub(crate) fn r_satp() -> usize {
 }
 
 // 特権モードの trap cause
-pub(crate) fn r_scause() -> usize {
+pub fn r_scause() -> usize {
     let x: usize;
     unsafe {
         asm!(
@@ -353,7 +352,7 @@ pub(crate) fn r_scause() -> usize {
 }
 
 // 特権モードの trap value
-pub(crate) fn r_stval() -> usize {
+pub fn r_stval() -> usize {
     let x: usize;
     unsafe {
         asm!(
@@ -365,7 +364,7 @@ pub(crate) fn r_stval() -> usize {
 }
 
 // マシンモードの下位モードから、各種カウンタを読ませるか
-pub(crate) fn w_mcounteren(x: usize) {
+pub fn w_mcounteren(x: usize) {
     unsafe {
         asm!(
             "csrw mcounteren, {}",
@@ -373,7 +372,7 @@ pub(crate) fn w_mcounteren(x: usize) {
         );
     }
 }
-pub(crate) fn r_mcounteren() -> usize {
+pub fn r_mcounteren() -> usize {
     let x: usize;
     unsafe {
         asm!(
@@ -385,7 +384,7 @@ pub(crate) fn r_mcounteren() -> usize {
 }
 
 // time カウンタ
-pub(crate) fn r_time() -> usize {
+pub fn r_time() -> usize {
     let x: usize;
     unsafe {
         asm!(
@@ -397,22 +396,24 @@ pub(crate) fn r_time() -> usize {
 }
 
 // 特権モードで割り込みを許可（全体）
-pub(crate) fn intr_on() {
+pub fn intr_on() {
     s_sstatus(SSTATUS_SIE);
 }
 
-// 特権モードで割り込みを禁止
-pub(crate) fn intr_off() {
+// 特権モードでinterrupt trapを禁止
+// 割り込みがあった場合、pending bitがたち、放置される。
+// intr_on()が呼ばれた後、pendingされていた割り込みがまとめて実行される
+pub fn intr_off() {
     c_sstatus(SSTATUS_SIE);
 }
 
 // 特権モードで割り込みは許可されているか
-pub(crate) fn intr_get() -> bool {
+pub fn intr_get() -> bool {
     (r_sstatus() & SSTATUS_SIE) != 0
 }
 
 // spを取得
-pub(crate) fn r_sp() -> usize {
+pub fn r_sp() -> usize {
     let x: usize;
     unsafe {
         asm!(
@@ -425,7 +426,7 @@ pub(crate) fn r_sp() -> usize {
 
 // xv6では、tpはスレッドポインタではなく、現在のCPUコアの番号保存のために使う
 // cpus[tp]を読むと現在のcpuの状態がわかる
-pub(crate) fn r_tp() -> usize {
+pub fn r_tp() -> usize {
     let x: usize;
     unsafe {
         asm!(
@@ -435,7 +436,7 @@ pub(crate) fn r_tp() -> usize {
     }
     x
 }
-pub(crate) fn w_tp(x: usize) {
+pub fn w_tp(x: usize) {
     unsafe {
         asm!(
             "mv tp, {}",
@@ -445,7 +446,7 @@ pub(crate) fn w_tp(x: usize) {
 }
 
 // raを取得
-pub(crate) fn r_ra() -> usize {
+pub fn r_ra() -> usize {
     let x: usize;
     unsafe {
         asm!(
@@ -458,79 +459,62 @@ pub(crate) fn r_ra() -> usize {
 
 // TLBをフラッシュ
 // PTへの書き込みのfenceにもなっている
-pub(crate) fn sfence_vma() {
+pub fn sfence_vma() {
     unsafe {
         asm!("sfence.vma zero, zero");
     }
 }
 
 // fence(MMIOのとき、OoOで順番が壊れないように保証)
-pub(crate) fn io_fence() {
+pub fn io_fence() {
     unsafe {
         asm!("fence iorw, iorw");
     }
 }
 
 // fence for icache
-pub(crate) fn icache_fence() {
+pub fn icache_fence() {
     unsafe {
         asm!("fence.i");
     }
 }
 
-pub(crate) type PteT = usize;
-pub(crate) type PagetableT = *mut [PteT; 512];
+pub const PG_SIZE: usize = 4096;
+pub const PG_SHIFT: usize = 12;
 
-pub(crate) const PGSIZE: usize = 4096;
-pub(crate) const PGSHIFT: usize = 12;
-
-macro_rules! PGROUNDUP {
-    ($sz: expr) => {
-        ($sz + PGSIZE - 1) & !(PGSIZE - 1)
-    };
+pub fn pgroundup(sz: usize) -> usize {
+    (sz + PG_SIZE - 1) & !(PG_SIZE - 1)
 }
-macro_rules! PGROUNDDOWN {
-    ($a: expr) => {
-        $a & !(PGSIZE - 1)
-    };
+pub fn pgrounddown(sz: usize) -> usize {
+    sz & !(PG_SIZE - 1)
 }
 
-pub(crate) const PTE_V: PteT = 1 << 0; // valid
-pub(crate) const PTE_R: PteT = 1 << 1;
-pub(crate) const PTE_W: PteT = 1 << 2;
-pub(crate) const PTE_X: PteT = 1 << 3;
-pub(crate) const PTE_U: PteT = 1 << 4; // user can aaccess
+pub const PTE_V: Pte = 1 << 0; // valid
+pub const PTE_R: Pte = 1 << 1;
+pub const PTE_W: Pte = 1 << 2;
+pub const PTE_X: Pte = 1 << 3;
+pub const PTE_U: Pte = 1 << 4; // user can aaccess
 
-macro_rules! PA2PTE {
-    ($pa: expr) => {
-        ($pa >> 12) << 10
-    };
+pub fn pa2pte(pa: usize) -> usize {
+    (pa >> 12) << 10
 }
-macro_rules! PTE2PA {
-    ($pte: expr) => {
-        ($pte >> 10) << 12
-    };
+pub fn pte2pa(pte: usize) -> usize {
+    (pte >> 10) << 12
 }
-macro_rules! PTE_FLAGS {
-    ($pte: expr) => {
-        $pte & 0x3FF
-    };
+pub fn pte_flags(pte: usize) -> usize {
+    pte & 0x3FF
 }
 
 // 9bitのページテーブルインデックスをレベルごとに取得
-const PXMASK: PteT = 0x1FF;
-macro_rules! PXSHIFT {
-    ($level: expr) => {
-        PGSHIFT + 9 * $level
-    };
+const PXMASK: Pte = 0x1FF;
+pub fn pxshift(level: usize) -> usize {
+    PG_SHIFT + 9 * level
 }
-macro_rules! PX {
-    ($level: expr, $va: expr) => {
-        ($va >> PXSHIFT!($level)) & PXMASK
-    };
+pub fn px(level: usize, va: usize) -> usize {
+    (va >> pxshift(level)) & PXMASK
 }
 
 // 仮想アドレスの最大値
 // 符号拡張の必要性があり面倒なため、38ビット目を使わない
 // そのため、sv39の最大アドレスよりも１ビット小さい
-pub(crate) const MAXVA: usize = 1 << (9 + 9 + 9 + 12 - 1);
+pub const MAX_VA: usize = 1 << (9 + 9 + 9 + 12 - 1);

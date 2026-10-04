@@ -16,7 +16,15 @@ KERNEL_LINKER = $(KERNEL_DIR)/kernel.ld
 
 KERNEL_RUST_SRC = $(wildcard $(KERNEL_DIR)/*.rs)
 KERNEL_ASM_SRC = $(wildcard $(KERNEL_DIR)/*.s)
-KERNEL_ASM_OBJ = $(patsubst $(KERNEL_DIR)/%.s,$(OUT_DIR)/%.o,$(KERNEL_ASM_SRC))
+KERNEL_ASM_OBJ = $(patsubst $(KERNEL_DIR)/%.s,$(OUT_DIR)/$(KERNEL_DIR)/%.o,$(KERNEL_ASM_SRC))
+
+# USER Settings
+USER_DIR = kernel
+USER_LINKER = $(USER_DIR)/user.ld
+
+USER_RUST_SRC = $(wildcard $(KERNEL_DIR)/*.rs)
+KERNEL_ASM_SRC = $(wildcard $(KERNEL_DIR)/*.s)
+KERNEL_ASM_OBJ = $(patsubst $(KERNEL_DIR)/%.s,$(OUT_DIR)/$(KERNEL_DIR)/%.o,$(KERNEL_ASM_SRC))
 
 RUSTFLAGS = \
 	--target $(TARGET) \
@@ -24,7 +32,7 @@ RUSTFLAGS = \
     -C debuginfo=2 \
 	-C linker=$(LD)
 
-build: $(KERNEL_ELF)
+build: $(KERNEL_ELF) 
 
 $(KERNEL_ELF): $(KERNEL_RUST_SRC) $(KERNEL_ASM_OBJ) $(KERNEL_LINKER)
 	mkdir -p $(OUT_DIR)
@@ -34,7 +42,7 @@ $(KERNEL_ELF): $(KERNEL_RUST_SRC) $(KERNEL_ASM_OBJ) $(KERNEL_LINKER)
 		$(foreach obj,$(KERNEL_ASM_OBJ),-C link-arg=$(obj)) \
 		$(KERNEL_DIR)/main.rs -o $@
 
-$(OUT_DIR)/%.o: $(KERNEL_DIR)/%.s
+$(OUT_DIR)/$(KERNEL_DIR)/%.o: $(KERNEL_DIR)/%.s
 	mkdir -p $(OUT_DIR)
 	$(AS) $(ASFLAGS) -o $@ $<
 

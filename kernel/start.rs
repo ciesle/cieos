@@ -7,7 +7,7 @@ use crate::{param::*, riscv::*};
 static mut stack0: [u8; 4096 * NCPU] = [0; 4096 * NCPU];
 
 #[unsafe(no_mangle)]
-fn start() {
+extern "C" fn start() {
     let mut x: usize = r_mstatus();
     x &= !MSTATUS_MPP_MASK;
     x |= MSTATUS_MPP_S;
@@ -46,5 +46,5 @@ fn timer_init() {
 
     w_mcounteren(r_mcounteren() | 2);
 
-    w_stimecmp(r_time() + 1000000);
+    w_stimecmp(r_time() + 1_000_000);
 }

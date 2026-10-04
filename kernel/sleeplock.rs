@@ -1,23 +1,63 @@
+use crate::printk::*;
+use crate::proc::*;
 use crate::spinlock::*;
+use core::cell::UnsafeCell;
 use core::sync::atomic::AtomicBool;
+use core::sync::atomic::Ordering;
 
-struct SleepLock {
-    locked: AtomicBool,
-    lk: SpinLock, // このsleep lockを保護するspin lock
-    name: &str,
+struct SleepLockState {
+    locked: bool,
     pid: u32,
 }
-
-fn inits_sleeplock(lk: &mut sleeplock, name: &str) {
-    init_lock(&lk.lk, "sleep lock");
-    lk.name = name;
-    lk.locked = AtomicBool::new(false);
-    lk.pid = 0;
+pub struct SleepLock<T> {
+    lk: SpinLock<SleepLockState>, // このsleep lockを保護するspin lock
+    name: &'static str,
+    data: UnsafeCell<T>,
 }
-
-fn acquire_sleep(lk: &mut SleepLock) {
-    acquire(&lk.lk);
-    while lk.locked.load(Order::Acquire) {
-        sleep_prepare(lk);
+impl<T> SleepLock<T> {
+    pub const fn new(data: T, name: &'static str) -> Self {
+        Self {
+            lk: SpinLock::new(
+                SleepLockState {
+                    locked: false,
+                    pid: 0,
+                },
+                "sleeplock",
+            ),
+            name: name,
+            data: UnsafeCell::new(data),
+        }
+    }
+    pub fn acquire(&self) -> Guard<'_, T, SleepLock<T>> {
+        let mut state = self.lk.acquire();
+        unsafe {
+            while state.locked {
+                sleep_prepare(core::ptr::from_ref(self).cast::<()>());
+                drop(state);
+                sleep();
+                state = self.lk.acquire();
+            }
+            state.locked = true;
+            state.pid = *(*my_proc()).pid.get();
+        }
+        Guard::new(self, self.data.get())
+    }
+    pub fn release(&self) {
+        let mut state = self.lk.acquire();
+        unsafe {
+            state.locked = false;
+            state.pid = 0;
+            wakeup(core::ptr::from_ref(self).cast::<()>());
+        }
+    }
+    pub fn holding(&self) -> bool {
+        let state = self.lk.acquire();
+        unsafe { state.locked && (state.pid == *my_proc().pid.get()) }
     }
 }
+impl<T> Lock for SleepLock<T> {
+    fn release(&self) {
+        SleepLock::release(self);
+    }
+}
+unsafe impl<T> Sync for SleepLock<T> {}

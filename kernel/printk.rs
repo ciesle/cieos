@@ -1,15 +1,17 @@
+use crate::spinlock::*;
+use console::*;
 use core::fmt;
 use core::mem::size_of;
-use uart::consputc;
+use core::sync::atomic::{AtomicBool, Ordering};
 
-static mut PANICKING: bool = false; // trueならpanic messageを出力
-static mut PANICKED: bool = false; // 無限ループに入る
+pub static PANICKING: AtomicBool = AtomicBool::new(false); // trueならpanic messageを出力
+pub static PANICKED: AtomicBool = AtomicBool::new(false); // 無限ループに入る
 
-static pr: SpinLock = SpinLock::new();
+static PRINT_LOCK: SpinLock<u8> = SpinLock::new(0, "pr");
 
 const DIGITS: &[u8; 16] = b"0123456789abcdef";
 
-pub(crate) fn print_int(xx: i64, base: u64, mut sign: bool) {
+pub fn print_int(xx: i64, base: u64, mut sign: bool) {
     let mut buf: [u8; 20] = [1; 20];
     let mut i: usize = 0;
     if sign {
@@ -36,7 +38,7 @@ pub(crate) fn print_int(xx: i64, base: u64, mut sign: bool) {
     }
 }
 
-pub(crate) fn print_ptr(mut x: usize) {
+pub fn print_ptr(mut x: usize) {
     consputc(b'0');
     consputc(b'x');
     for i in 0..(size_of::<usize>() * 2) {
@@ -55,19 +57,15 @@ impl fmt::Write for Console {
     }
 }
 
-pub(crate) fn _print(args: fmt::Arguments) {
+pub fn _print(args: fmt::Arguments) {
     use core::fmt::Write;
+    let mut share;
     unsafe {
-        if !PANICKING {
-            // TODO
+        if !PANICKING.load(Ordering::Relaxed) {
+            share = PRINT_LOCK.acquire();
         }
     }
     Console.write_fmt(args).unwrap();
-    unsafe {
-        if !PANICKING {
-            // TODO
-        }
-    }
 }
 
 #[macro_export]
@@ -75,19 +73,4 @@ macro_rules! printk {
 	($($args:tt)*) => {
 		$crate::printk::_print(format_args!($($args)*));
 	};
-}
-
-fn panic(s: &str) {
-    unsafe {
-        PANICKING = true;
-    }
-    printk!("panic: {}", s);
-    unsafe {
-        PANICKED = true;
-    }
-    loop {}
-}
-
-fn panic_init() {
-    init_lock(&mut pr, "pr");
 }
