@@ -99,7 +99,7 @@ pub fn uartgetc() -> Option<u8> {
 // 入力が来た、uartがもっと出力できるようになった
 // devintr()から呼び出される
 pub fn uart_intr() {
-    read_reg(ISR); // 割り込みの種類を取得
+    read_reg(ISR); // 送信可能割り込みをクリア
     if read_reg(LSR) & LSR_TX_IDLE != 0 {
         wakeup(core::ptr::from_ref(&TX_CHAN).cast::<()>());
     }

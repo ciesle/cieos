@@ -385,6 +385,9 @@ fn alloc_proc() -> Option<(
     return Some((p, share));
 }
 
+// temporary
+pub static USER_IMAGE: &[u8] = include_bytes!("../build/user/iocheck.elf");
+use crate::test_iocheck::*;
 // first user processをsetup
 pub fn user_init() {
     unsafe {
@@ -403,6 +406,18 @@ pub fn user_init() {
         (*INITPROC.local.get()).context = Context::new();
         (*INITPROC.local.get()).context.ra = forkret as *const () as usize;
         (*INITPROC.local.get()).context.sp = (*(*INITPROC).local.get()).kstack + PG_SIZE;
+
+        // temporary
+        let local = &mut *INITPROC.local.get();
+        let (entry, image_end) = load_init_image(&local.pagetable);
+        let stack_base = pgroundup(image_end);
+        let stack_top = stack_base + PG_SIZE;
+        local.pagetable.alloc(image_end, stack_top, PTE_W);
+        local.sz = stack_top;
+        local.name = "iocheck";
+        core::ptr::write_bytes(local.trapframe, 0, 1);
+        (*local.trapframe).epc = entry;
+        (*local.trapframe).sp = stack_top;
     }
 }
 

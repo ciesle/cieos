@@ -35,7 +35,7 @@ impl PageTable {
     // kallocされたアドレスがpaとして渡されるのを想定
     // vaとsizeはpage-alignedである必要がある。
     // 成功したらtrueを返す
-    pub fn map(&self, va: usize, size: usize, pa: usize, perm: usize) -> bool {
+    pub fn map(&self, va: usize, size: usize, mut pa: usize, perm: usize) -> bool {
         if va % PG_SIZE != 0 {
             panic!("map: va not aligned");
         }
@@ -47,7 +47,6 @@ impl PageTable {
         }
 
         let mut a: usize = va;
-        let mut pa2: usize = pa;
         let mut last: usize = va + size - PG_SIZE;
         let mut pte: *mut Pte = null_mut();
 
@@ -66,12 +65,12 @@ impl PageTable {
                         // 同じページを2度割り当てようとした
                         panic!("map: remap");
                     }
-                    *pte = pa2pte(pa2) | perm | PTE_V;
+                    *pte = pa2pte(pa) | perm | PTE_V;
                     if a == last {
                         return true;
                     }
                     a += PG_SIZE;
-                    pa2 = pa2 + PG_SIZE;
+                    pa = pa + PG_SIZE;
                 }
             } else {
                 return false;
@@ -177,7 +176,7 @@ impl PageTable {
             }
         }
 
-        unsafe { NonNull::new(&raw mut (*pagetable)[px(0, va)]) }
+        unsafe { Some(NonNull::from_ref(&(*pagetable)[px(0, va)])) }
     }
     // 仮想アドレスから物理アドレスを返す
     // user pageを探すためにしか使えない

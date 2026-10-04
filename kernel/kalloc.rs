@@ -44,7 +44,7 @@ pub fn kfree(pa: NonNull<u8>) {
 
         let mut freelist = KMEM.acquire();
         (*r).next = *freelist;
-        *freelist.data = r;
+        *freelist = r;
     }
 }
 
@@ -52,14 +52,14 @@ pub fn kfree(pa: NonNull<u8>) {
 // カーネルが使えるアドレスが返し、割り当てられなければ0を返す
 pub fn kalloc() -> Option<NonNull<u8>> {
     unsafe {
-        let freelist = KMEM.acquire();
-        if *freelist != null_mut() {
-            *freelist.data = (**freelist).next;
-        }
+        let mut freelist = KMEM.acquire();
         let r = *freelist;
+        if *freelist != null_mut() {
+            *freelist = (**freelist).next;
+        }
         drop(freelist);
         if r != null_mut() {
-            core::ptr::write_bytes(r, 5, PG_SIZE);
+            core::ptr::write_bytes(r as *mut u8, 5, PG_SIZE);
         }
         NonNull::new(r as *mut u8)
     }

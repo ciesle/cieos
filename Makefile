@@ -19,12 +19,12 @@ KERNEL_ASM_SRC = $(wildcard $(KERNEL_DIR)/*.s)
 KERNEL_ASM_OBJ = $(patsubst $(KERNEL_DIR)/%.s,$(OUT_DIR)/$(KERNEL_DIR)/%.o,$(KERNEL_ASM_SRC))
 
 # USER Settings
-USER_DIR = kernel
+USER_DIR = user
 USER_LINKER = $(USER_DIR)/user.ld
-
-USER_RUST_SRC = $(wildcard $(KERNEL_DIR)/*.rs)
-KERNEL_ASM_SRC = $(wildcard $(KERNEL_DIR)/*.s)
-KERNEL_ASM_OBJ = $(patsubst $(KERNEL_DIR)/%.s,$(OUT_DIR)/$(KERNEL_DIR)/%.o,$(KERNEL_ASM_SRC))
+USER_MAIN = $(USER_DIR)/iocheck.rs
+USER_ELF = $(OUT_DIR)/$(USER_DIR)/iocheck.elf
+USER_RUST_SRC = $(wildcard $(USER_DIR)/*.rs)
+USER_ASM_SRC = $(USER_DIR)/usys.s
 
 RUSTFLAGS = \
 	--target $(TARGET) \
@@ -35,15 +35,25 @@ RUSTFLAGS = \
 build: $(KERNEL_ELF) 
 
 $(KERNEL_ELF): $(KERNEL_RUST_SRC) $(KERNEL_ASM_OBJ) $(KERNEL_LINKER)
-	mkdir -p $(OUT_DIR)
+	mkdir -p $(@D)
 	$(RUSTC) $(RUSTFLAGS) \
 		-A unused \
 		-C link-arg=-T$(KERNEL_LINKER) \
 		$(foreach obj,$(KERNEL_ASM_OBJ),-C link-arg=$(obj)) \
 		$(KERNEL_DIR)/main.rs -o $@
 
+$(USER_ELF): $(USER_RUST_SRC) $(KERNEL_ASM_SRC) $(USER_LINKER)
+	mkdir -p $(@D)
+	$(RUSTC) $(RUSTFLAGS) --edition=2024 --crate-type=bin \
+		-C opt-level=2 \
+		-C relocation-model=static -C code-model=medium \
+		-C link-arg=-T$(USER_LINKER) \
+		-C link-arg=-emain -C link-arg=--no-relax \
+		-C link-arg=-z -C link-arg=max-page-size=4096 \
+		$(USER_MAIN) -o $@
+
 $(OUT_DIR)/$(KERNEL_DIR)/%.o: $(KERNEL_DIR)/%.s
-	mkdir -p $(OUT_DIR)
+	mkdir -p $(@D)
 	$(AS) $(ASFLAGS) -o $@ $<
 
 run: build
@@ -51,9 +61,12 @@ run: build
 		-machine virt \
 		-nographic \
 		-bios none \
+		-smp 2 \
 		-kernel $(KERNEL_ELF)
 
-gdb: 
+# gdb-multiarch build/kernel.elf -q \
+  -ex "target remote localhost:10000"
+gdb: build
 	$(QEMU) \
 		-machine virt \
 		-nographic \

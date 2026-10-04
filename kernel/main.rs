@@ -1,12 +1,12 @@
 #![no_std]
 #![no_main]
 
+#[macro_use]
+mod printk;
 mod console;
 mod kalloc;
 mod memlayout;
 mod param;
-#[macro_use]
-mod printk;
 mod plic;
 mod proc;
 mod riscv;
@@ -15,6 +15,7 @@ mod spinlock;
 mod start;
 mod syscall;
 mod sysfile;
+mod test_iocheck;
 mod trampoline;
 mod trap;
 mod types;
@@ -55,7 +56,7 @@ static STARTED: AtomicBool = AtomicBool::new(false);
 pub extern "C" fn main() {
     if cpu_id() == 0 {
         console_init();
-        printk!("\n cieos kernel is booting!\n\n");
+        printk!("\ncieos kernel is booting!\n\n");
         kinit();
         KERNEL_PAGETABLE.init();
         KERNEL_PAGETABLE.init_hart();
@@ -64,6 +65,7 @@ pub extern "C" fn main() {
         plic_init();
         plic_init_hart();
         user_init();
+        printk!("\nbooting done!\n\n");
 
         STARTED.store(true, Ordering::Release);
     } else {

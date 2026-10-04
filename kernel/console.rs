@@ -4,7 +4,7 @@ use crate::spinlock::*;
 use crate::uart::*;
 use core::mem;
 
-enum ConsoleChar {
+pub enum ConsoleChar {
     Char(u8),
     BackSpace,
 }
@@ -44,9 +44,9 @@ struct Cons {
 static CONS_LOCK: SpinLock<Cons> = SpinLock::new(
     Cons {
         buf: [0; INPUT_BUF_SIZE],
-        r: 0, // read index
-        w: 0, // write index
-        e: 0, // edit index
+        r: 0, // 一番先端 index
+        w: 0, // 確定 index
+        e: 0, // 編集した index
     },
     "cons",
 );

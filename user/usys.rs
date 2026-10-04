@@ -5,7 +5,7 @@ unsafe extern "C" {
     pub fn exit() -> usize;
     pub fn wait() -> usize;
     pub fn pipe() -> usize;
-    pub fn read() -> usize;
+    pub fn read(fd: i32, buffer: &mut [u8], length: usize) -> isize;
     pub fn kill() -> usize;
     pub fn exec() -> usize;
     pub fn fstat() -> usize;
@@ -16,7 +16,7 @@ unsafe extern "C" {
     pub fn pause() -> usize;
     pub fn uptime() -> usize;
     pub fn open() -> usize;
-    pub fn write() -> usize;
+    pub fn write(fd: i32, buffer: &mut [u8], length: usize) -> isize;
     pub fn mknod() -> usize;
     pub fn unlink() -> usize;
     pub fn link() -> usize;

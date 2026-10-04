@@ -74,6 +74,7 @@ extern "C" fn usertrap() -> usize {
         }
         // 時計割り込みならCPUを手放す
         if which_dev == 2 {
+            printk!("yield\n");
             yield_cpu();
         }
         prepare_return();

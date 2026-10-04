@@ -90,7 +90,7 @@ pub fn argstr(n: usize, buf: &mut [char], max: usize) -> Option<usize> {
     fetch_str(addr, buf, max)
 }
 
-static SYSCALLS: [fn() -> usize; 22] = [
+static SYSCALLS: [fn() -> isize; 22] = [
     sys_dummy, // 1
     sys_dummy, // 2
     sys_dummy, // 3
@@ -115,7 +115,7 @@ static SYSCALLS: [fn() -> usize; 22] = [
     sys_dummy, // 22
 ];
 
-fn sys_dummy() -> usize {
+fn sys_dummy() -> isize {
     0
 }
 
@@ -124,7 +124,7 @@ pub fn syscall() {
     unsafe {
         let num = (*(*p.local.get()).trapframe).a7;
         if num > 0 && num < SYSCALLS.len() {
-            (*(*p.local.get()).trapframe).a0 = SYSCALLS[num - 1]();
+            (*(*p.local.get()).trapframe).a0 = SYSCALLS[num - 1]() as usize;
         } else {
             printk!(
                 "{} {}: unknown sys call {}\n",
@@ -132,7 +132,7 @@ pub fn syscall() {
                 (*p.local.get()).name,
                 num
             );
-            (*(*p.local.get()).trapframe).a0 = usize::MAX;
+            (*(*p.local.get()).trapframe).a0 = -1isize as usize;
         }
     }
 }

@@ -6,10 +6,10 @@ MEMORY {
 }
 
 SECTIONS {
-  . = 0x80000000; // 0x80_000_000
+  . = 0x80000000; # 0x80_000_000
 
   .text : {
-    build/entry.o(.text)
+    build/kernel/entry.o(.text)
     *(.text .text.*)
     . = ALIGN(0x1000);
     _trampoline = .;
