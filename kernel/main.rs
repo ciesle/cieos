@@ -1,42 +1,20 @@
 #![no_std]
 #![no_main]
 
-#[macro_use]
-mod printk;
-mod console;
-mod kalloc;
+mod dev;
+mod fs;
 mod memlayout;
-mod param;
-mod plic;
 mod proc;
 mod riscv;
-mod sleeplock;
-mod spinlock;
 mod start;
-mod syscall;
-mod sysfile;
-mod test_iocheck;
-mod trampoline;
-mod trap;
-mod types;
-mod uart;
-mod vm;
-use crate::console::*;
-use crate::kalloc::*;
-use crate::memlayout::*;
-use crate::memlayout::*;
-use crate::param::*;
-use crate::plic::*;
-use crate::printk::*;
-use crate::proc::*;
-use crate::riscv::*;
-use crate::sleeplock::*;
-use crate::spinlock::*;
-use crate::syscall::*;
-use crate::trampoline::*;
-use crate::trap::*;
-use crate::types::*;
-use crate::vm::*;
+mod user;
+mod utils;
+
+use dev::console::*;
+use fs::{buf::*, plic::*, virtio::*};
+use proc::{kalloc::*, pagetable::*, proc::*, trap::*};
+use utils::printk::{self, *};
+
 use core::sync::atomic::{AtomicBool, Ordering};
 
 use core::panic::PanicInfo;
@@ -64,6 +42,11 @@ pub extern "C" fn main() {
         trap_init_hart();
         plic_init();
         plic_init_hart();
+        binit();
+        // iinit, fileinitはlockの初期化のみなのでいらない
+        let mut disk = DISK_LOCK.acquire();
+        disk.init();
+        drop(disk);
         user_init();
         printk!("\nbooting done!\n\n");
 

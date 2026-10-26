@@ -52,3 +52,9 @@
 3. sepc, sstatusを復元
 4. kernelvecに戻り、レジスタを復元し、sretでcsrのsepcに戻る
 
+## トラップベクタ
+なお、kernelvecやuservecはcsrのstvecに登録されており、トラップがあった場合にはCPUがscauseやsstatusレジスタを設定した上でここに遷移する。
+
+## killの扱い
+usertrapの最後で、p.killedがtrueならkexitしている。
+他にも、不要な書き込みやシステムコール呼び出しをブロックしている

@@ -1,6 +1,8 @@
 use core::arch::asm;
 
-use crate::{param::*, riscv::*};
+use super::riscv::*;
+
+use api::param::*;
 
 #[unsafe(link_section = ".stack0")]
 #[unsafe(no_mangle)]
@@ -46,5 +48,5 @@ fn timer_init() {
 
     w_mcounteren(r_mcounteren() | 2);
 
-    w_stimecmp(r_time() + 1_000_000);
+    w_stimecmp(r_time().wrapping_add(1_000_000));
 }

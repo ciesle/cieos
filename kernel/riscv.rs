@@ -1,5 +1,8 @@
-use crate::vm::*;
+use super::proc::pagetable::*;
 use core::arch::asm;
+
+use api::param::*;
+use api::vm::*;
 
 pub fn r_mhartid() -> usize {
     let x: usize;
@@ -102,7 +105,7 @@ pub fn rc_sstatus(x: usize) -> usize {
     old
 }
 
-// 特権モードでの割り込みがpendingか
+/// 特権モードでの割り込みがpendingか
 pub fn r_sip() -> usize {
     let x: usize;
     unsafe {
@@ -170,7 +173,7 @@ pub fn w_mie(x: usize) {
     }
 }
 
-// トラップ直前の実行アドレス
+/// トラップ直前の実行アドレス
 pub fn r_sepc() -> usize {
     let x: usize;
     unsafe {
@@ -190,7 +193,7 @@ pub fn w_sepc(x: usize) {
     }
 }
 
-// 例外発生時のマシンモードからの移譲
+/// 例外発生時のマシンモードからの移譲
 pub fn r_medeleg() -> usize {
     let x: usize;
     unsafe {
@@ -210,7 +213,7 @@ pub fn w_medeleg(x: usize) {
     }
 }
 
-// 割り込み発生時のマシンモードからの移譲
+/// 割り込み発生時のマシンモードからの移譲
 pub fn r_mideleg() -> usize {
     let x: usize;
     unsafe {
@@ -230,8 +233,8 @@ pub fn w_mideleg(x: usize) {
     }
 }
 
-// 割り込みベクトルのベースアドレス
-// 下位２ビットがモードで、ベクターモードのときは base + 4 * cause のアドレスにジャンプする
+/// 割り込みベクトルのベースアドレス
+/// 下位２ビットがモードで、ベクターモードのときは base + 4 * cause のアドレスにジャンプする
 pub fn r_stvec() -> usize {
     let x: usize;
     unsafe {
@@ -251,7 +254,7 @@ pub fn w_stvec(x: usize) {
     }
 }
 
-// 特権モード向けのタイマー設定（時刻がこの値以上で割り込みが入る）
+/// 特権モード向けのタイマー設定（時刻がこの値以上で割り込みが入る）
 pub fn r_stimecmp() -> usize {
     let x: usize;
     unsafe {
@@ -293,8 +296,8 @@ pub fn w_menvcfg(x: usize) {
     }
 }
 
-// 物理メモリ保護
-// 物理メモリについてどう保護するか
+/// 物理メモリ保護
+/// 物理メモリについてどう保護するか
 pub fn w_pmpcfg0(x: usize) {
     unsafe {
         asm!(
@@ -303,7 +306,7 @@ pub fn w_pmpcfg0(x: usize) {
         );
     }
 }
-// 保護対象となる物理アドレス範囲を指定する
+/// 保護対象となる物理アドレス範囲を指定する
 pub fn w_pmpaddr0(x: usize) {
     unsafe {
         asm!(
@@ -318,8 +321,8 @@ pub fn make_satp(pagetable: &PageTable) -> usize {
     SATP_SV39 | (pagetable.root as usize >> 12)
 }
 
-// supervisor address translation and protection
-// (仮想記憶方式)(アドレス空間の識別子 for TLB)(ルートページテーブルのページ番号)
+/// supervisor address translation and protection
+/// (仮想記憶方式)(アドレス空間の識別子 for TLB)(ルートページテーブルのページ番号)
 pub fn w_satp(x: usize) {
     unsafe {
         asm!(
@@ -339,7 +342,7 @@ pub fn r_satp() -> usize {
     x
 }
 
-// 特権モードの trap cause
+/// 特権モードの trap cause
 pub fn r_scause() -> usize {
     let x: usize;
     unsafe {
@@ -351,7 +354,7 @@ pub fn r_scause() -> usize {
     x
 }
 
-// 特権モードの trap value
+/// 特権モードの trap value
 pub fn r_stval() -> usize {
     let x: usize;
     unsafe {
@@ -363,7 +366,7 @@ pub fn r_stval() -> usize {
     x
 }
 
-// マシンモードの下位モードから、各種カウンタを読ませるか
+/// マシンモードの下位モードから、各種カウンタを読ませるか
 pub fn w_mcounteren(x: usize) {
     unsafe {
         asm!(
@@ -383,7 +386,7 @@ pub fn r_mcounteren() -> usize {
     x
 }
 
-// time カウンタ
+/// time カウンタ
 pub fn r_time() -> usize {
     let x: usize;
     unsafe {
@@ -395,24 +398,24 @@ pub fn r_time() -> usize {
     x
 }
 
-// 特権モードで割り込みを許可（全体）
+/// 特権モードで割り込みを許可（全体）
 pub fn intr_on() {
     s_sstatus(SSTATUS_SIE);
 }
 
-// 特権モードでinterrupt trapを禁止
-// 割り込みがあった場合、pending bitがたち、放置される。
-// intr_on()が呼ばれた後、pendingされていた割り込みがまとめて実行される
+/// 特権モードでinterrupt trapを禁止
+/// 割り込みがあった場合、pending bitがたち、放置される。
+/// intr_on()が呼ばれた後、pendingされていた割り込みがまとめて実行される
 pub fn intr_off() {
     c_sstatus(SSTATUS_SIE);
 }
 
-// 特権モードで割り込みは許可されているか
+/// 特権モードで割り込みは許可されているか
 pub fn intr_get() -> bool {
     (r_sstatus() & SSTATUS_SIE) != 0
 }
 
-// spを取得
+/// spを取得
 pub fn r_sp() -> usize {
     let x: usize;
     unsafe {
@@ -424,8 +427,8 @@ pub fn r_sp() -> usize {
     x
 }
 
-// xv6では、tpはスレッドポインタではなく、現在のCPUコアの番号保存のために使う
-// cpus[tp]を読むと現在のcpuの状態がわかる
+/// xv6では、tpはスレッドポインタではなく、現在のCPUコアの番号保存のために使う
+/// cpus[tp]を読むと現在のcpuの状態がわかる
 pub fn r_tp() -> usize {
     let x: usize;
     unsafe {
@@ -445,7 +448,7 @@ pub fn w_tp(x: usize) {
     }
 }
 
-// raを取得
+/// raを取得
 pub fn r_ra() -> usize {
     let x: usize;
     unsafe {
@@ -457,64 +460,55 @@ pub fn r_ra() -> usize {
     x
 }
 
-// TLBをフラッシュ
-// PTへの書き込みのfenceにもなっている
+/// TLBをフラッシュ
+/// PTへの書き込みのfenceにもなっている
 pub fn sfence_vma() {
     unsafe {
         asm!("sfence.vma zero, zero");
     }
 }
 
-// fence(MMIOのとき、OoOで順番が壊れないように保証)
+/// fence(MMIOのとき、OoOで順番が壊れないように保証)
 pub fn io_fence() {
     unsafe {
         asm!("fence iorw, iorw");
     }
 }
 
-// fence for icache
+/// fence for icache
 pub fn icache_fence() {
     unsafe {
         asm!("fence.i");
     }
 }
 
-pub const PG_SIZE: usize = 4096;
-pub const PG_SHIFT: usize = 12;
-
-pub fn pgroundup(sz: usize) -> usize {
-    (sz + PG_SIZE - 1) & !(PG_SIZE - 1)
+pub enum PteFlag {
+    V = 1 << 0, // valid
+    R = 1 << 1,
+    W = 1 << 2,
+    X = 1 << 3, // execute
+    U = 1 << 4, // user can aaccess
 }
-pub fn pgrounddown(sz: usize) -> usize {
-    sz & !(PG_SIZE - 1)
+pub fn pa2pte(pa: PAddr) -> Pte {
+    (usize::from(pa) >> 12) << 10
 }
-
-pub const PTE_V: Pte = 1 << 0; // valid
-pub const PTE_R: Pte = 1 << 1;
-pub const PTE_W: Pte = 1 << 2;
-pub const PTE_X: Pte = 1 << 3;
-pub const PTE_U: Pte = 1 << 4; // user can aaccess
-
-pub fn pa2pte(pa: usize) -> usize {
-    (pa >> 12) << 10
+pub fn pte2pa(pte: Pte) -> PAddr {
+    PAddr((pte >> 10) << 12)
 }
-pub fn pte2pa(pte: usize) -> usize {
-    (pte >> 10) << 12
-}
-pub fn pte_flags(pte: usize) -> usize {
+pub fn pte_flags(pte: Pte) -> usize {
     pte & 0x3FF
 }
 
 // 9bitのページテーブルインデックスをレベルごとに取得
-const PXMASK: Pte = 0x1FF;
+const PXMASK: usize = 0x1FF;
 pub fn pxshift(level: usize) -> usize {
     PG_SHIFT + 9 * level
 }
-pub fn px(level: usize, va: usize) -> usize {
-    (va >> pxshift(level)) & PXMASK
+pub fn px(level: usize, va: VAddr) -> usize {
+    (usize::from(va) >> pxshift(level)) & PXMASK
 }
 
 // 仮想アドレスの最大値
 // 符号拡張の必要性があり面倒なため、38ビット目を使わない
 // そのため、sv39の最大アドレスよりも１ビット小さい
-pub const MAX_VA: usize = 1 << (9 + 9 + 9 + 12 - 1);
+pub const MAX_VA: VAddr = VAddr(1 << (9 + 9 + 9 + 12 - 1));
